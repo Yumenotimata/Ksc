@@ -3,107 +3,83 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
-char *user_input;
+#include <string.h>
 
-void error_at(char *loc,char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap,fmt);
 
-    int pos = loc - user_input;
-    fprintf(stderr,"%s\n",user_input);
-    fprintf(stderr,"*%s",pos," ");
-    fprintf(stderr,"^");
-    vfprintf(stderr,fmt,ap);
-    fprintf(stderr,"\n");
-    exit(1);
-}
-typedef enum
-{
-    ND_ADD,
-    ND_SUB,
-    ND_MUL,
-    ND_DIV,
-    ND_NUM,
-}NodeKind;
-
-typedef struct Node Node;
-struct Node
-{
-    NodeKind kind;
-    Node *lhs;
-    Node *rhs,
-    int val;
-};
-
-//the kinds of token
-typedef enum
-{
-    TK_RESERVED,
-    TK_NUM,
-    TK_EOF,
+typedef enum{
+    TOK_KIGOU,
+    TOK_NUM,
+    TOK_EOS,
 }TokenKind;
-
 typedef struct Token Token;
-
-struct Token
-{
+struct Token{
     TokenKind kind;
     Token *next;
     int val;
     char *str;
 };
-
 Token *token;
 
-void error(char* fmt, ...)
+
+typedef enum
 {
-    va_list ap;
-    va_start(ap,fmt);
-    vfprintf(stderr,fmt,ap);
-    fprintf(stderr,"\n");
+    NOD_ADD,
+    NOD_SUB,
+    NOD_MUL,
+    NOD_DIV,
+    NOD_NUM,
+}NodeKind;
+typedef struct Node Node;
+struct Node
+{
+    NodeKind kind;
+    Node *lhs;
+    Node *rhs;
+    int val;
+};
+
+
+void error(char *msg)
+{
+    printf("%s",msg);
     exit(1);
 }
 
 bool consume(char op)
 {
-    if(token->kind != TK_RESERVED || token->str[0]!=op)
+    if(token->kind != TOK_KIGOU ||token->str[0] != op)
     {
         return false;
-        
     }
-
-
     token = token->next;
     return true;
 }
 
 void expect(char op)
 {
-    if(token->kind != TK_RESERVED || token->str[0]!=op)
+    if(token->kind != TOK_KIGOU || token->str[0]!=op)
     {
-        error("not '%c' !!",op);
+        printf("%cではありません。",op);
+        exit(1);
     }
-
     token = token->next;
 }
 
 int expect_number()
 {
-    if(token->kind != TK_NUM)
+    if(token->kind != TOK_NUM)
     {
-        error_at(token->str,"it is not a number !!");
-        
+        printf("数ではありません");
+        exit(1);
     }
-
     int val = token->val;
     token = token->next;
     return val;
 }
 
-bool at_eof()
+bool at_eos()
 {
-    return token->kind == TK_EOF;
+    return token->kind == TOK_EOS;
 }
 
 Token *new_token(TokenKind kind,Token *cur,char *str)
@@ -115,40 +91,54 @@ Token *new_token(TokenKind kind,Token *cur,char *str)
     return tok;
 }
 
-Token *tokenize(char *p)
+Token *tokenize(char *text)
 {
     Token head;
     head.next = NULL;
     Token *cur = &head;
 
-    while(*p)
+    while(*text)
     {
-        if(isspace(*p))
+        if(isspace(*text))
         {
-            p++;
+            text++;
             continue;
         }
 
-        if(*p == '+' || *p == '-')
+        if(*text == '+'||*text == '-')
         {
-            cur = new_token(TK_RESERVED,cur,p++);
+            cur = new_token(TOK_KIGOU,cur,text);
+            text++;
+            continue;
+        }
+         if(*text == '*'||*text == '/')
+        {
+            cur = new_token(TOK_KIGOU,cur,text);
+            text++;
             continue;
         }
 
-        if(isdigit(*p))
+         if(*text == '('||*text == ')')
         {
-            cur = new_token(TK_NUM,cur,p);
-            cur->val = strtol(p,&p,10);
+            cur = new_token(TOK_KIGOU,cur,text);
+            text++;
             continue;
         }
 
-        error("can not tokenaize!!");
-        
+        if(isdigit(*text))
+        {
+            cur = new_token(TOK_NUM,cur,text);
+            cur->val = strtol(text,&text,10);
+            continue;
+        }
+        printf("トークナイズできません。");
+        exit(1);
     }
 
-    new_token(TK_EOF,cur,p);
+    new_token(TOK_EOS,cur,text);
     return head.next;
 }
+
 
 Node *new_node(NodeKind kind,Node *lhs,Node *rhs)
 {
@@ -162,10 +152,14 @@ Node *new_node(NodeKind kind,Node *lhs,Node *rhs)
 Node *new_node_num(int val)
 {
     Node *node = calloc(1,sizeof(Node));
-    node->kind = ND_NUM;
+    node->kind = NOD_NUM;
     node->val = val;
     return node;
 }
+
+Node *expr();
+Node *mul();
+Node *primary();
 
 Node *primary()
 {
@@ -177,7 +171,6 @@ Node *primary()
     }
 
     return new_node_num(expect_number());
-    
 }
 
 Node *mul()
@@ -188,10 +181,10 @@ Node *mul()
     {
         if(consume('*'))
         {
-            node = new_code(ND_MUL,node,primary());
+            node = new_node(NOD_MUL,node,primary());
         }else if(consume('/'))
         {
-            node = new_node(ND_DIV,node,primary());
+            node = new_node(NOD_DIV,node,primary());
         }else 
         {
             return node;
@@ -207,50 +200,63 @@ Node *expr()
     {
         if(consume('+'))
         {
-            node = new_node(ND_ADD,node,mul());
-        }
-        else if(consume('-'))
+            node = new_node(NOD_ADD,node,mul());
+        }else if(consume('-'))
         {
-            node = new_node(ND_SUB,node,mul());
-        }
-        else 
+            node = new_node(NOD_SUB,node,mul());
+        }else
         {
             return node;
         }
     }
 }
 
-int main(int argc,char **argv)
-{
-    //char *p = argv[1];
-    char *p = "1 - 74 +4";
+void gen(Node *node) {
+  if (node->kind == NOD_NUM) {
+    printf("  push %d\n", node->val);
+    return;
+  }
 
-    //tokenize
-    token = tokenize(p);
+  gen(node->lhs);
+  gen(node->rhs);
+
+  printf("  pop rdi\n");
+  printf("  pop rax\n");
+
+  switch (node->kind) {
+  case NOD_ADD:
+    printf("  add rax, rdi\n");
+    break;
+  case NOD_SUB:
+    printf("  sub rax, rdi\n");
+    break;
+  case NOD_MUL:
+    printf("  imul rax, rdi\n");
+    break;
+  case NOD_DIV:
+    printf("  cqo\n");
+    printf("  idiv rdi\n");
+    break;
+  }
+
+  printf("  push rax\n");
+}
+
+int main(int argc,char *argv[])
+{
+    char *text = "2*3+4-(4*(4/3)/6*5)";
+    token = tokenize(text);
+    char *user_input;
+    user_input = text;
+    Node *node = expr();
 
     printf(".intel_syntax noprefix\n");
     printf(".globl main\n");
     printf("main:\n");
+    //printf("    mov rax, %ld\n", expect_number());
 
-    printf("    mov rax,%ld\n",expect_number());
+    gen(node);
+   
+    printf("  ret\n");
 
-    while(!at_eof())
-    {
-
-        if(consume('+'))
-        {
-            printf("    add rax,%d\n",expect_number());
-            continue;
-        }
-
-        expect('-');
-        printf("    sub rax,%d\n",expect_number());
-
-    }
-    
-    printf("    ret\n");
-
-
-
-    return 0;
 }
