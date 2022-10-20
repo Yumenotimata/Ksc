@@ -17,6 +17,7 @@ struct Token{
     Token *next;
     int val;
     char *str;
+    int len;
 };
 Token *token;
 
@@ -47,17 +48,18 @@ void error(char *msg)
 
 bool consume(char op)
 {
-    if(token->kind != TOK_KIGOU ||token->str[0] != op)
+    if(token->kind != TOK_KIGOU)
     {
+        printf("error");
         return false;
     }
     token = token->next;
     return true;
 }
 
-void expect(char op)
+void expect(char *op)
 {
-    if(token->kind != TOK_KIGOU || token->str[0]!=op)
+    if(token->kind != TOK_KIGOU)
     {
         printf("%cではありません。",op);
         exit(1);
@@ -87,6 +89,7 @@ Token *new_token(TokenKind kind,Token *cur,char *str)
     Token *tok = calloc(1,sizeof(Token));
     tok->kind = kind;
     tok->str = str;
+    tok->len = strlen(str);
     cur->next = tok;
     return tok;
 }
@@ -104,7 +107,23 @@ Token *tokenize(char *text)
             text++;
             continue;
         }
-
+        // if(*text == '=')
+        // {
+        //     text++;
+        //     if(*text == '=')
+        //     {
+        //         cur = new_token(TOK_KIGOU,cur,text);
+        //         text++;
+        //         continue;
+        //     }
+        //     continue;
+        // }
+        // if(*text == '=')
+        // {
+        //     cur = new_token(TOK_KIGOU,cur,text);
+        //     text++;
+        //     continue;
+        // }
         if(*text == '+'||*text == '-')
         {
             cur = new_token(TOK_KIGOU,cur,text);
@@ -160,13 +179,27 @@ Node *new_node_num(int val)
 Node *expr();
 Node *mul();
 Node *primary();
+Node *unary();
+
+Node *unary()
+{
+    if(consume("+"))
+    {
+        return primary();
+    }
+    if(consume("-"))
+    {
+        return new_node(NOD_SUB,new_node_num(0),primary());
+    }
+    return primary();
+}
 
 Node *primary()
 {
-    if(consume('('))
+    if(consume("("))
     {
         Node *node = expr();
-        expect(')');
+        expect(")");
         return node;
     }
 
@@ -179,10 +212,10 @@ Node *mul()
 
     for(;;)
     {
-        if(consume('*'))
+        if(consume("*"))
         {
             node = new_node(NOD_MUL,node,primary());
-        }else if(consume('/'))
+        }else if(consume("/"))
         {
             node = new_node(NOD_DIV,node,primary());
         }else 
@@ -198,10 +231,10 @@ Node *expr()
 
     for(;;)
     {
-        if(consume('+'))
+        if(consume("+"))
         {
             node = new_node(NOD_ADD,node,mul());
-        }else if(consume('-'))
+        }else if(consume("-"))
         {
             node = new_node(NOD_SUB,node,mul());
         }else
@@ -244,7 +277,7 @@ void gen(Node *node) {
 
 int main(int argc,char *argv[])
 {
-    char *text = "2*3+4-(4*(4/3)/6*5)";
+    char *text = "51";
     token = tokenize(text);
     char *user_input;
     user_input = text;
