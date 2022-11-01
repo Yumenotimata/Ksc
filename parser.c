@@ -1,28 +1,22 @@
 #include "mycc.h"
 
-Node *parser(Token *opToken)
-{
-    Node *OpToken = opToken;
-    expr(OpToken);
-}
 
-Node *expr(Token *opToken)
+Node *expr(Token **opToken)
 {
     printf("expr mul(opToken)\n");
     Node *retNode = mul(opToken);
     printf("expr returned from mul\n");
-    opToken = opToken->next;
-    printf("...%c..\n",opToken->str[0]);
+
     for(;;)
     {
         if(ifKigou(opToken,"+"))
         {
-            opToken = opToken->next;
+            *opToken = (*opToken)->next;
             retNode = makeNewNode(ND_ADD,retNode,mul(opToken));
         }
         else if(ifKigou(opToken,"-"))
         {
-            opToken = opToken->next;
+            *opToken = (*opToken)->next;
             retNode = makeNewNode(ND_SUB,retNode,mul(opToken));
         }else
         {
@@ -32,7 +26,7 @@ Node *expr(Token *opToken)
     }
 }
 
-Node *mul(Token *opToken)
+Node *mul(Token **opToken)
 {
     printf("mull primary(opToken)\n");
     Node *retNode = primary(opToken);
@@ -41,13 +35,13 @@ Node *mul(Token *opToken)
     {
         if(ifKigou(opToken,"*"))
         {
-            opToken = opToken->next;
-            Node *retNode = makeNewNode(ND_MUL,retNode,primary(opToken));
+            *opToken = (*opToken)->next;
+            retNode = makeNewNode(ND_MUL,retNode,primary(opToken));
             printf("*\n");
         }else if(ifKigou(opToken,"/"))
         {
-            opToken = opToken->next;
-            Node *retNode = makeNewNode(ND_DIV,retNode,primary(opToken));
+            *opToken = (*opToken)->next;
+            retNode = makeNewNode(ND_DIV,retNode,primary(opToken));
             printf("/\n");
         }
         else
@@ -58,29 +52,34 @@ Node *mul(Token *opToken)
     }
 }
 
-Node *primary(Token *opToken)
+Node *primary(Token **opToken)
 {
+    printf("%d",(*opToken)->val);
+    
     if(ifKigou(opToken,"("))
     {
+        printf("ok");
         Node *retNode = expr(opToken);
-        opToken = opToken->next;
-        if(opToken->str[0] != ')')
+        exit(1);
+        *opToken = (*opToken)->next;
+        if((*opToken)->str[0] != ')')
         {
             printf("')' is not exit");
             exit(1);
         } 
         return retNode;
     }
-    Node *retNode = makeNewNumNode(opToken->val);
-    opToken = opToken->next;
+    
+    Node *retNode = makeNewNumNode((*opToken)->val);
+    *opToken = (*opToken)->next;
     //printf("%c\n",opToken->str[0]);
     printf("primary retuened retNode\n");
     return retNode;
 }
 
-bool ifKigou(Token *opToken,char *str)
+bool ifKigou(Token **opToken,char *str)
 {
-    if(opToken->kind != TK_KIGOU || memcmp(opToken->str,str,strlen(str)))
+    if((*opToken)->kind != TK_KIGOU || memcmp((*opToken)->str,str,strlen(str)))
     {
         return false;
     }

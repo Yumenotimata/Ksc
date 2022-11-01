@@ -2,13 +2,15 @@
  
 int main()
 {
-   char code[] = "1+3";
+   char code[] = "2+3*4";
     Token *head =  doTokenize(code);
     //misutta
     head = head->next;
     
-    Node *parse = parser(head);
-    
+    Node *parse = expr(&head);
+    parse = parse->rhs;
+    parse = parse->rhs;
+    printf("\n%d\n",parse->val);
     return 0;
 }
 

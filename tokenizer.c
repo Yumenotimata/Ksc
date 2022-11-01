@@ -32,6 +32,20 @@ Token *doTokenize(char *code)
             code++;
             continue;
         }
+         if(*code == '*')
+        {
+            opToken->next = makeNewStrToken(TK_KIGOU,code);
+            opToken = opToken->next;
+            code++;
+            continue;
+        }
+        if(*code == '*')
+        {
+            opToken->next = makeNewStrToken(TK_KIGOU,code);
+            opToken = opToken->next;
+            code++;
+            continue;
+        }
         if(*code == '(')
         {
             opToken->next = makeNewStrToken(TK_KIGOU,code);
