@@ -18,6 +18,92 @@ Token *doTokenize(char *code)
             opToken = opToken->next; 
             continue;
         }
+        if(*code == '=')
+        {   code++;
+            if(*code == '=')
+            {
+                code--;
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code+=2;
+                continue;
+            }else 
+            {
+                printf("'=' is not exist!");
+                exit(1);
+            }
+            
+        }
+
+        if(*code == '!')
+        {
+            code++;
+            if(*code == '=')
+            {
+                code--;
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code+=2;
+                continue;
+            }else 
+            {
+                printf("'=' is not exist !!\n'!' is need '='");
+                exit(1);
+            }
+        }
+
+        if(*code == '<')
+        {
+            code++;
+            if(*code == '=')
+            {
+                code--;
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code+=2;
+                printf("ok");
+                continue;
+            }
+            if(isspace(*code) || isdigit(*code))
+            {
+                code--;
+                printf("op");
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code++;
+                continue;
+            }else 
+            {
+                printf("errro\n");
+                exit(1);
+            }
+        }
+        if(*code == '>')
+        {
+            code++;
+            if(*code == '=')
+            {
+                code--;
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code+=2;
+                printf("ok");
+                continue;
+            }
+            if(isspace(*code) || isdigit(*code))
+            {
+                code--;
+                printf("op");
+                opToken->next = makeNewStrToken(TK_KIGOU,code);
+                opToken = opToken->next;
+                code++;
+                continue;
+            }else 
+            {
+                printf("errro\n");
+                exit(1);
+            }
+        }
         if(*code == '+')
         {
             opToken->next = makeNewStrToken(TK_KIGOU,code);

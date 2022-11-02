@@ -13,6 +13,12 @@
         TK_KIGOU,
         TK_NUM,
         TK_EOF,
+        TK_EQU,
+        TK_NEQU,
+        TK_SB,
+        TK_ESB,
+        TK_BS,
+        TK_EBS,
     }TokenKind;
 
     typedef struct Token Token;
@@ -32,6 +38,12 @@
         ND_MUL,
         ND_DIV,
         ND_NUM,
+        ND_EQU,
+        ND_SB,
+        ND_ESB,
+        ND_BS,
+        ND_EBS,
+        ND_NEQU,
     }NodeKind;
 
     typedef struct Node Node;
@@ -54,6 +66,10 @@
     Node *mul(Token **opToken);
     Node *primary(Token **opToken);
     Node *unary(Token **opToken);
+    Node *equality(Token **opToken);
+    Node *relational(Token **opToken);
+    Node *add(Token **opToken);
+
     bool ifKigou(Token **opToken,char *str);
     Node *makeNewNode(NodeKind kind,Node *lhs,Node *rhs);
     Node *makeNewNumNode(int val);
