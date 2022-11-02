@@ -2,15 +2,14 @@
  
 int main()
 {
-   char code[] = "2+3*4";
+   char code[] = "((1+4)*5)/4+54*(34+2*2)";
     Token *head =  doTokenize(code);
     //misutta
     head = head->next;
     
-    Node *parse = expr(&head);
-    parse = parse->rhs;
-    parse = parse->rhs;
-    printf("\n%d\n",parse->val);
+    Node *node = expr(&head);
+    printf("\n\ngenerateCode\n");
+    generateCode(node);
     return 0;
 }
 

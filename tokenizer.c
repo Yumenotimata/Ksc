@@ -39,7 +39,7 @@ Token *doTokenize(char *code)
             code++;
             continue;
         }
-        if(*code == '*')
+        if(*code == '/')
         {
             opToken->next = makeNewStrToken(TK_KIGOU,code);
             opToken = opToken->next;

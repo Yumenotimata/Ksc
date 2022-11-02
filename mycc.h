@@ -53,10 +53,11 @@
     Node *expr(Token **opToken);
     Node *mul(Token **opToken);
     Node *primary(Token **opToken);
-
+    Node *unary(Token **opToken);
     bool ifKigou(Token **opToken,char *str);
     Node *makeNewNode(NodeKind kind,Node *lhs,Node *rhs);
     Node *makeNewNumNode(int val);
 
+    void generateCode(Node *node);
 
 #endif

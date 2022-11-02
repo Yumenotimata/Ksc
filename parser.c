@@ -13,16 +13,33 @@ Node *expr(Token **opToken)
         {
             *opToken = (*opToken)->next;
             retNode = makeNewNode(ND_ADD,retNode,mul(opToken));
+            printf("+\n");
         }
         else if(ifKigou(opToken,"-"))
         {
             *opToken = (*opToken)->next;
             retNode = makeNewNode(ND_SUB,retNode,mul(opToken));
+            printf("-\n");
         }else
         {
             printf("expr returned retNode\n");
             return retNode;
         }
+    }
+}
+
+Node *unary(Token **opToken)
+{
+    if(ifKigou(opToken,"+"))
+    {
+        *opToken = (*opToken)->next;
+        return primary(opToken);
+    }
+    if(ifKigou(opToken,"-"))
+    {
+        *opToken = (*opToken)->next;
+        Node *retNode = makeNewNode(ND_SUB,makeNewNumNode(0),primary(opToken));
+        return retNode;
     }
 }
 
@@ -54,21 +71,22 @@ Node *mul(Token **opToken)
 
 Node *primary(Token **opToken)
 {
-    printf("%d",(*opToken)->val);
-    
+
     if(ifKigou(opToken,"("))
     {
-        printf("ok");
-        Node *retNode = expr(opToken);
-        exit(1);
+        printf("ok\n");
         *opToken = (*opToken)->next;
+        Node *retNode = expr(opToken);
+        
         if((*opToken)->str[0] != ')')
         {
             printf("')' is not exit");
             exit(1);
         } 
+        *opToken = (*opToken)->next;
         return retNode;
     }
+        printf("%d",(*opToken)->val);
     
     Node *retNode = makeNewNumNode((*opToken)->val);
     *opToken = (*opToken)->next;
